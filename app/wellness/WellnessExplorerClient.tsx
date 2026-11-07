@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   X,
   Gauge,
-  PlusCircle
+  PlusCircle,
+  Info
 } from "lucide-react";
 import { useUserMode } from "@/components/providers/UserModeProvider";
 import ModeToggle from "@/components/navigation/ModeToggle";
@@ -595,6 +596,31 @@ export default function WellnessExplorerClient({
             </button>
           )}
         </div>
+
+        {/* Academic Methodology Disclaimer Banner (under 4 HRI dimension filter bar) */}
+        <div
+          style={{
+            marginTop: "14px",
+            padding: "10px 14px",
+            background: "rgba(16, 185, 129, 0.05)",
+            border: "1px solid rgba(16, 185, 129, 0.2)",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+            fontSize: "12px",
+            lineHeight: 1.5,
+            color: "var(--text-secondary)"
+          }}
+        >
+          <Info size={16} style={{ color: "var(--accent)", flexShrink: 0, marginTop: "2px" }} />
+          <div>
+            <strong style={{ color: "var(--text-primary)" }}>หมายเหตุระเบียบวิธีวิจัย: </strong>
+            <span>
+              ดัชนีชี้วัด HRI (Stress, Comfort, Trust, Utility) เป็นคะแนนที่ประเมินเชิงประจักษ์ (Empirical &amp; Inferred Evaluation) ตามกรอบมาตรฐานสากล Godspeed Questionnaire Series และ Technology Acceptance Model (TAM) จากเอกสารวิจัยที่ตีพิมพ์ ไม่ใช่การวินิจฉัยทางการแพทย์ (Non-diagnostic Context)
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Empirical HRI Casebook Section */}
@@ -1069,6 +1095,31 @@ export default function WellnessExplorerClient({
         </div>
       )}
 
+      {/* Academic Methodology Disclaimer Banner (at bottom of robot cards) */}
+      <div
+        style={{
+          marginTop: "24px",
+          padding: "12px 16px",
+          background: "rgba(16, 185, 129, 0.05)",
+          border: "1px solid rgba(16, 185, 129, 0.2)",
+          borderRadius: "8px",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "10px",
+          fontSize: "12px",
+          lineHeight: 1.5,
+          color: "var(--text-secondary)"
+        }}
+      >
+        <Info size={16} style={{ color: "var(--accent)", flexShrink: 0, marginTop: "2px" }} />
+        <div>
+          <strong style={{ color: "var(--text-primary)" }}>หมายเหตุระเบียบวิธีวิจัย: </strong>
+          <span>
+            ดัชนีชี้วัด HRI (Stress, Comfort, Trust, Utility) เป็นคะแนนที่ประเมินเชิงประจักษ์ (Empirical &amp; Inferred Evaluation) ตามกรอบมาตรฐานสากล Godspeed Questionnaire Series และ Technology Acceptance Model (TAM) จากเอกสารวิจัยที่ตีพิมพ์ ไม่ใช่การวินิจฉัยทางการแพทย์ (Non-diagnostic Context)
+          </span>
+        </div>
+      </div>
+
       {/* Detail Modal for Inspection */}
       {selectedRobotForDetail && (
         <div
@@ -1346,6 +1397,7 @@ export default function WellnessExplorerClient({
           </div>
         </div>
       )}
+
       {/* Submit Case Modal */}
       <SubmitCaseModal
         isOpen={isSubmitModalOpen}

@@ -15,6 +15,10 @@ export async function seedWellnessCases(prisma: PrismaClient) {
     where: { canonicalName: { contains: "Pinto", mode: "insensitive" } }
   });
 
+  const bumi = await prisma.robotModel.findFirst({
+    where: { canonicalName: { contains: "Bumi", mode: "insensitive" } }
+  });
+
   if (!dinsawMini || !chulaRehab || !pinto) {
     console.warn("Required robot records not found in database. Skipping wellness cases seeding.");
     return;
@@ -68,7 +72,25 @@ export async function seedWellnessCases(prisma: PrismaClient) {
       evidenceUrl: "https://www.eng.chula.ac.th/en/pinto-robot-covid19-hospital-aid",
       submittedBy: "Faculty of Engineering, Chulalongkorn University (CU-RoboCOVID Team)",
       status: "APPROVED" as const
-    }
+    },
+    ...(bumi
+      ? [
+          {
+            title: "Bumi Humanoid in Interactive Cognitive Therapy at EEC Robotics Center",
+            robotId: bumi.id,
+            scenarioContext: "Social/Education",
+            activityDesc: "การทดสอบบทบาทผู้ช่วยฝึกบริหารสมองและสื่อสารเชิงบวกในกลุ่มทดสอบวัยเกษียณ",
+            stressScore: 2,
+            comfortScore: 4,
+            trustScore: 4,
+            usefulnessScore: 4,
+            caveats: "การใช้งานต้องมีวิทยากรหรือผู้เชี่ยวชาญร่วมแนะนำการโต้ตอบในช่วงเริ่มต้น (Pilot Evaluation Phase)",
+            evidenceUrl: "https://noetixrobotics.com/en/news/events/962",
+            submittedBy: "EEC Automation Park & Robotics Demonstration Center",
+            status: "PENDING" as const
+          }
+        ]
+      : [])
   ];
 
   for (const c of cases) {

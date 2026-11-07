@@ -50,12 +50,13 @@ export default async function AdminConsolePage({ searchParams }: { searchParams:
   const lang = (cookieStore.get("lang")?.value || "en") as "en" | "th";
   const t = getTranslation(lang);
   const currentRole = cookieStore.get("user_role")?.value;
-  const isAdmin = currentRole === "ADMIN";
+  const adminSession = cookieStore.get("admin_session")?.value;
+  const isAdmin = currentRole === "ADMIN" || adminSession === "true";
 
   const localT = {
     en: {
-      denied: "Access Denied",
-      deniedDesc: "You must have the ADMIN role to review submissions or edit CMS content.",
+      denied: "Access Restricted",
+      deniedDesc: "Please login as Administrator in Profile page to access the Review Console.",
       goProfile: "Go to Profile & Login as Admin",
       addNew: "Add new record",
       save: "Save record",
@@ -70,9 +71,9 @@ export default async function AdminConsolePage({ searchParams }: { searchParams:
       submittedData: "Submitted Data"
     },
     th: {
-      denied: "ปฏิเสธการเข้าถึง",
-      deniedDesc: "คุณต้องมีบทบาทผู้ดูแลระบบ (ADMIN) เพื่อแก้ไขข้อมูล CMS",
-      goProfile: "ไปที่โปรไฟล์และเข้าสู่ระบบในฐานะผู้ดูแล",
+      denied: "จำกัดการเข้าถึง (Access Restricted)",
+      deniedDesc: "กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบ (Administrator) ในหน้าโปรไฟล์เพื่อเปิดใช้งาน Review Console",
+      goProfile: "ไปที่หน้าโปรไฟล์เพื่อเข้าสู่ระบบ Admin",
       addNew: "เพิ่มรายการใหม่",
       save: "บันทึกรายการ",
       create: "สร้างรายการ",
@@ -93,7 +94,7 @@ export default async function AdminConsolePage({ searchParams }: { searchParams:
         <div style={{ maxWidth: "560px", margin: "40px auto", textAlign: "center" }} className="panel">
           <h1 style={{ color: "var(--danger)" }}>{localT.denied}</h1>
           <p className="muted" style={{ margin: "14px 0" }}>{localT.deniedDesc}</p>
-          <Link href="/profile" className="button primary">{localT.goProfile}</Link>
+          <Link href="/profile?need_admin=true" className="button primary">{localT.goProfile}</Link>
         </div>
       </div>
     );

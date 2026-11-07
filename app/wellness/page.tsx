@@ -162,6 +162,13 @@ export default async function WellnessPage() {
         cases={cases}
         currentLang={lang}
       />
+
+      <div style={{ marginTop: "20px", paddingBottom: "16px" }}>
+        <p style={{ fontSize: "11px", lineHeight: 1.5, color: "var(--text-secondary)", opacity: 0.85, margin: 0 }}>
+          <strong style={{ color: "var(--text-primary)" }}>หมายเหตุระเบียบวิธีวิจัย: </strong>
+          ดัชนีชี้วัด HRI (Stress, Comfort, Trust, Utility) เป็นคะแนนที่ประเมินเชิงประจักษ์ (Empirical &amp; Inferred Evaluation) ตามกรอบมาตรฐานสากล Godspeed Questionnaire Series และ Technology Acceptance Model (TAM) จากเอกสารวิจัยที่ตีพิมพ์ ไม่ใช่การวินิจฉัยทางการแพทย์ (Non-diagnostic Context)
+        </p>
+      </div>
     </>
   );
 }

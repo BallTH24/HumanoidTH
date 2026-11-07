@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false }
 };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams
+}: {
+  searchParams?: Promise<{ need_admin?: string; from?: string }>;
+}) {
+  const params = searchParams ? await searchParams : undefined;
+  const needAdmin = params?.need_admin === "true";
   const cookieStore = await cookies();
   const currentEmail = cookieStore.get("user_email")?.value;
   const currentRole = cookieStore.get("user_role")?.value;
@@ -38,6 +44,22 @@ export default async function ProfilePage() {
 
   return (
     <>
+      {needAdmin && (
+        <div
+          className="notice"
+          style={{
+            background: "rgba(239, 68, 68, 0.12)",
+            border: "1px solid var(--danger)",
+            color: "#fca5a5",
+            marginBottom: "20px",
+            padding: "12px 16px",
+            borderRadius: "8px"
+          }}
+        >
+          <strong>Access Restricted:</strong> Please login as Administrator below to access the Admin Review Console.
+        </div>
+      )}
+
       <h1>{t.profileTitle}</h1>
       <p className="muted" style={{ marginBottom: "18px" }}>{t.profileDesc}</p>
       

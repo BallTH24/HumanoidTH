@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import AdminConsolePage from "./AdminConsolePage";
 
 type SearchParams = Promise<{
@@ -13,6 +15,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false }
 };
 
-export default function AdminPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
+  const cookieStore = await cookies();
+  const adminSession = cookieStore.get("admin_session")?.value;
+  const userRole = cookieStore.get("user_role")?.value;
+
+  const isAdmin = adminSession === "true" || userRole === "ADMIN";
+
+  if (!isAdmin) {
+    redirect("/profile?need_admin=true");
+  }
+
   return <AdminConsolePage searchParams={searchParams} />;
 }
