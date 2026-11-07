@@ -16,15 +16,17 @@ import {
   UsersRound,
   Home,
   MapPinned,
-  Package
+  Package,
+  HeartPulse
 } from "lucide-react";
 import { getTranslation } from "@/lib/translations";
 
 interface SidebarNavProps {
   currentLang?: "en" | "th";
+  isCollapsed?: boolean;
 }
 
-export default function SidebarNav({ currentLang = "en" }: SidebarNavProps) {
+export default function SidebarNav({ currentLang = "en", isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname() || "/";
   const t = getTranslation(currentLang);
 
@@ -35,6 +37,7 @@ export default function SidebarNav({ currentLang = "en" }: SidebarNavProps) {
     { href: "/map", label: t.map, icon: MapPinned },
     { href: "/network", label: t.network, icon: Network },
     { href: "/perspectives", label: t.perspectives, icon: Newspaper },
+    { href: "/wellness", label: t.wellness, icon: HeartPulse },
     { href: "/robots", label: t.robots, icon: Bot },
     { href: "/inventory", label: t.inventory, icon: Package },
     { href: "/contributions", label: t.contributors, icon: UsersRound },
@@ -46,7 +49,7 @@ export default function SidebarNav({ currentLang = "en" }: SidebarNavProps) {
   ];
 
   return (
-    <nav className="nav" aria-label="Primary">
+    <nav className={`nav ${isCollapsed ? "collapsed" : ""}`} aria-label="Primary">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = item.href === "/admin" ? pathname.startsWith("/admin") : pathname === item.href;
@@ -54,10 +57,13 @@ export default function SidebarNav({ currentLang = "en" }: SidebarNavProps) {
           <Link 
             key={item.href} 
             href={item.href} 
-            className={isActive ? "active" : ""}
+            className={`${isActive ? "active" : ""} ${isCollapsed ? "collapsed" : ""}`}
+            title={item.label}
+            aria-label={item.label}
+            data-tooltip={item.label}
           >
-            <Icon size={17} aria-hidden="true" />
-            <span>{item.label}</span>
+            <Icon size={17} aria-hidden="true" className="nav-icon" />
+            {!isCollapsed && <span className="nav-label">{item.label}</span>}
           </Link>
         );
       })}

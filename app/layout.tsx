@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { IBM_Plex_Sans_Thai, Inter } from "next/font/google";
-import SidebarNav from "./components/SidebarNav";
-import LanguageSelector from "./components/LanguageSelector";
+import Sidebar from "@/components/Sidebar";
 import MobileHeader from "./components/MobileHeader";
 import MobileTabNav from "./components/MobileTabNav";
 import DataPullFab from "./components/DataPullFab";
 import FirstTimeLoader from "./components/FirstTimeLoader";
+import { UserModeProvider } from "@/components/providers/UserModeProvider";
 import { getTranslation } from "@/lib/translations";
 import { defaultSeoDescription, getSiteUrl, siteName } from "@/lib/seo";
 import "./globals.css";
@@ -129,30 +129,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <html lang={lang} className={`${inter.variable} ${ibmPlexSansThai.variable}`}>
-      <body>
+    <html lang={lang} className={`${inter.variable} ${ibmPlexSansThai.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <FirstTimeLoader />
-        <div className="app-shell">
-          <MobileHeader />
-          <aside className="sidebar">
-            <div className="brand-logo-container">
-              <img src="/logo.png" alt="Thailand Humanoid Atlas" className="brand-logo" />
-            </div>
-            <div style={{ flex: 1, overflowY: "auto", paddingRight: "4px" }}>
-              <SidebarNav currentLang={lang} />
-            </div>
-            <div style={{ paddingTop: "14px", borderTop: "1px solid #14352a", marginTop: "auto" }}>
-              <LanguageSelector currentLang={lang} />
-            </div>
-          </aside>
-          <main className="main motion-page">{children}</main>
-          <DataPullFab />
-          <MobileTabNav currentLang={lang} />
-        </div>
+        <UserModeProvider>
+          <div className="app-shell">
+            <MobileHeader />
+            <Sidebar currentLang={lang} />
+            <main className="main motion-page pb-24">{children}</main>
+            <DataPullFab />
+            <MobileTabNav currentLang={lang} />
+          </div>
+        </UserModeProvider>
       </body>
     </html>
   );

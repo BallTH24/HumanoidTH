@@ -131,7 +131,7 @@ export default async function OverviewPage() {
   const formatMetric = (value: number | null) => value?.toLocaleString() ?? "Unavailable";
 
   return (
-    <main className="atlas-page">
+    <div className="atlas-page">
       <style dangerouslySetInnerHTML={{ __html: `
         .atlas-page {
           display: grid;
@@ -969,7 +969,7 @@ export default async function OverviewPage() {
           })
         }}
       />
-    </main>
+    </div>
 
   );
 }
