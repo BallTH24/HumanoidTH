@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import RobotViewer from "./components/RobotViewer";
-import CopyCommands from "./components/CopyCommands";
 import { getTranslation } from "@/lib/translations";
 import {
   Bot,
@@ -55,6 +54,9 @@ export default async function OverviewPage() {
   const cookieStore = await cookies();
   const lang = (cookieStore.get("lang")?.value || "en") as "en" | "th";
   const t = getTranslation(lang);
+  const isAdmin =
+    cookieStore.get("admin_session")?.value === "true" ||
+    cookieStore.get("user_role")?.value === "ADMIN";
 
   let sourcesCount: number | null = null;
   let acceptedCount: number | null = null;
@@ -122,12 +124,6 @@ export default async function OverviewPage() {
     lastUpdatedStr = `${lang === "th" ? "ล่าสุด" : "Last"}: ${finishedDate.getMonth() + 1}/${finishedDate.getDate()}/${finishedDate.getFullYear()}`;
   }
 
-  const cliCommands = [
-    "python -m humanoid_atlas db init",
-    "python -m humanoid_atlas ingest seeds --file data/seeds/robot_models.seed.yml",
-    "python -m humanoid_atlas ingest seeds --file data/seeds/inventory.seed.yml"
-  ];
-
   const formatMetric = (value: number | null) => value?.toLocaleString() ?? "Unavailable";
 
   return (
@@ -137,8 +133,7 @@ export default async function OverviewPage() {
           display: grid;
           grid-template-areas:
             "header header"
-            "stack robot"
-            "terminal terminal";
+            "stack robot";
           grid-template-columns: minmax(560px, 0.98fr) minmax(420px, 1.02fr);
           column-gap: 34px;
           row-gap: 18px;
@@ -536,92 +531,6 @@ export default async function OverviewPage() {
           transform-origin: center top;
         }
 
-        /* Terminal panel empty state */
-        .terminal-panel {
-          grid-area: terminal;
-          background: #08130f;
-          border: 1px solid #11261f;
-          border-radius: 12px;
-          padding: 22px;
-          color: #eef7f2;
-          margin-top: 2px;
-        }
-
-        .terminal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid #14352a;
-          padding-bottom: 12px;
-          margin-bottom: 16px;
-        }
-
-        .terminal-header h3 {
-          margin: 0;
-          font-size: 14px;
-          font-weight: 800;
-          color: var(--warning);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .terminal-panel p {
-          margin: 0 0 16px 0;
-          font-size: 13px;
-          color: #a3c2b5;
-          line-height: 1.5;
-        }
-
-        .command-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-        }
-
-        .command-card {
-          background: rgba(20, 53, 42, 0.3);
-          border: 1px solid rgba(20, 53, 42, 0.6);
-          border-radius: 8px;
-          padding: 16px;
-          position: relative;
-          padding-top: 32px;
-        }
-
-        .command-card .step {
-          position: absolute;
-          top: 12px;
-          left: 16px;
-          background: var(--warning);
-          color: #0b1a15;
-          font-weight: 800;
-          font-size: 10px;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .command-card strong {
-          display: block;
-          font-size: 12.5px;
-          color: #ffffff;
-          margin-bottom: 8px;
-        }
-
-        .command-card code {
-          display: block;
-          background: #040a08;
-          padding: 8px 10px;
-          border-radius: 4px;
-          color: #10B981;
-          font-family: var(--font-sans);
-          font-size: 11px;
-          word-break: break-all;
-          white-space: pre-wrap;
-        }
-
         @keyframes spinRing {
           0% { transform: rotateX(72deg) rotateY(15deg) rotate(0deg); }
           100% { transform: rotateX(72deg) rotateY(15deg) rotate(360deg); }
@@ -720,10 +629,6 @@ export default async function OverviewPage() {
           .platform-item strong {
             font-size: 16px;
           }
-          .command-grid {
-            grid-template-columns: 1fr;
-            gap: 12px;
-          }
         }
       `}} />
 
@@ -758,24 +663,28 @@ export default async function OverviewPage() {
         </div>
 
         <div className="actions">
-          <Link className="button primary" href="/data-pulls">
-            <Play size={14} fill="currentColor" />
-            <span style={{ fontSize: "10px" }}>▶</span> {t.runDataPull}
-          </Link>
-          <Link className="button" href="/database">
-            <FolderOpen size={15} color="#d19a1b" />
-            <span>📂</span> {t.browseDatabase}
-          </Link>
-          <Link className="button" href="/submit-data">
-            <Send size={15} color="#9a7bd8" />
+          {isAdmin && (
+            <>
+              <Link className="button" href="/data-pulls">
+                <Play size={14} fill="currentColor" />
+                <span style={{ fontSize: "10px" }}>▶</span> {t.runDataPull}
+              </Link>
+              <Link className="button" href="/database">
+                <FolderOpen size={15} color="#d19a1b" />
+                <span>📂</span> {t.browseDatabase}
+              </Link>
+              <Link className="button" href="/admin">
+                <ClipboardList size={15} color="#b17c56" />
+                <span>📋</span> {t.reviewQueue}{" "}
+                <span style={{ color: "var(--success)", fontWeight: "800" }}>
+                  ({pendingReviewsCount ?? "Unavailable"})
+                </span>
+              </Link>
+            </>
+          )}
+          <Link className="button primary" href="/submit-data">
+            <Send size={15} color="#ffffff" />
             <span>📨</span> {t.submitRecord}
-          </Link>
-          <Link className="button" href="/admin">
-            <ClipboardList size={15} color="#b17c56" />
-            <span>📋</span> {t.reviewQueue}{" "}
-            <span style={{ color: "var(--success)", fontWeight: "800" }}>
-              ({pendingReviewsCount ?? "Unavailable"})
-            </span>
           </Link>
         </div>
       </header>
@@ -899,36 +808,6 @@ export default async function OverviewPage() {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-
-      </section>
-
-      {/* Database Empty State Guide */}
-      <section className="terminal-panel">
-        <div className="terminal-header">
-          <h3>{t.emptyStateTitle}</h3>
-          <CopyCommands commands={cliCommands} />
-        </div>
-
-        <p>{t.emptyStateDesc}</p>
-
-        <div className="command-grid">
-          <div className="command-card">
-            <div className="step">1</div>
-            <strong>Initialize DB tables</strong>
-            <code>python -m humanoid_atlas db init</code>
-          </div>
-          <div className="command-card">
-            <div className="step">2</div>
-            <strong>Seed robot models</strong>
-            <code>python -m humanoid_atlas ingest seeds --file data/seeds/robot_models.seed.yml</code>
-          </div>
-          <div className="command-card">
-            <div className="step">3</div>
-            <strong>Seed inventory and relations</strong>
-            <code>python -m humanoid_atlas ingest seeds --file data/seeds/inventory.seed.yml</code>
           </div>
         </div>
       </section>

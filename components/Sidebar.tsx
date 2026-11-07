@@ -11,13 +11,10 @@ import {
   Inbox,
   LayoutDashboard,
   Network,
-  Newspaper,
-  Send,
   Settings2,
   UsersRound,
   Home,
   MapPinned,
-  Package,
   PanelLeftClose,
   PanelLeftOpen,
   HeartPulse
@@ -30,18 +27,41 @@ interface SidebarProps {
   currentLang?: "en" | "th";
   className?: string;
   defaultCollapsed?: boolean;
+  isAdmin?: boolean;
 }
 
 export default function Sidebar({
   currentLang = "en",
   className = "",
-  defaultCollapsed = false
+  defaultCollapsed = false,
+  isAdmin: initialIsAdmin = false
 }: SidebarProps) {
   const pathname = usePathname() || "/";
   const t = getTranslation(currentLang);
 
   // Initialize with defaultCollapsed for SSR hydration safety
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
+
+  // Sync with prop changes
+  useEffect(() => {
+    setIsAdmin(initialIsAdmin);
+  }, [initialIsAdmin]);
+
+  // Sync with cookies on route transition
+  useEffect(() => {
+    try {
+      const cookies = document.cookie;
+      const hasAdmin =
+        cookies.includes("admin_session=true") ||
+        cookies.includes("user_role=ADMIN");
+      if (hasAdmin !== isAdmin) {
+        setIsAdmin(hasAdmin);
+      }
+    } catch {
+      // Ignore errors in sandboxed environments
+    }
+  }, [pathname, isAdmin]);
 
   // Restore user preference from localStorage on mount and listen to keyboard shortcut
   useEffect(() => {
@@ -91,22 +111,37 @@ export default function Sidebar({
     });
   };
 
-  const navItems = [
+  const publicNavItems = [
     { href: "/", label: t.overview, icon: Home },
     { href: "/dashboard", label: t.dashboard, icon: LayoutDashboard },
-    { href: "/data-pulls", label: t.dataPulls, icon: Inbox },
-    { href: "/map", label: t.map, icon: MapPinned },
-    { href: "/network", label: t.network, icon: Network },
-    { href: "/perspectives", label: t.perspectives, icon: Newspaper },
     { href: "/wellness", label: t.wellness, icon: HeartPulse },
     { href: "/robots", label: t.robots, icon: Bot },
-    { href: "/inventory", label: t.inventory, icon: Package },
-    { href: "/contributions", label: t.contributors, icon: UsersRound },
+    { href: "/map", label: t.map, icon: MapPinned },
+    { href: "/network", label: t.network, icon: Network },
     { href: "/analytics", label: t.analytics, icon: BarChart3 },
-    { href: "/database", label: t.database, icon: Database },
-    { href: "/submit-data", label: t.submit, icon: Send },
-    { href: "/admin", label: t.admin, icon: Settings2 },
-    { href: "/profile", label: t.profile, icon: CircleUserRound }
+    { href: "/contributions", label: t.contributors, icon: UsersRound }
+  ];
+
+  const adminNavItems = [
+    {
+      href: "/admin",
+      label: currentLang === "th" ? "คอนโซลผู้ดูแล (Admin)" : "Admin Console",
+      icon: Settings2
+    },
+    { href: "/data-pulls", label: t.dataPulls, icon: Inbox },
+    { href: "/database", label: t.database, icon: Database }
+  ];
+
+  const profileNavItem = {
+    href: "/profile",
+    label: t.profile,
+    icon: CircleUserRound
+  };
+
+  const navItems = [
+    ...publicNavItems,
+    ...(isAdmin ? adminNavItems : []),
+    profileNavItem
   ];
 
   return (
@@ -195,7 +230,9 @@ export default function Sidebar({
             const isActive =
               item.href === "/admin"
                 ? pathname.startsWith("/admin")
-                : pathname === item.href;
+                : item.href === "/"
+                ? pathname === "/"
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
             return (
               <Link

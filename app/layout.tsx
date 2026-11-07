@@ -98,6 +98,9 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const lang = (cookieStore.get("lang")?.value || "en") as "en" | "th";
+  const isAdmin =
+    cookieStore.get("admin_session")?.value === "true" ||
+    cookieStore.get("user_role")?.value === "ADMIN";
   const t = getTranslation(lang);
   const siteUrl = getSiteUrl();
   const structuredData = {
@@ -139,9 +142,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <UserModeProvider>
           <div className="app-shell">
             <MobileHeader />
-            <Sidebar currentLang={lang} />
+            <Sidebar currentLang={lang} isAdmin={isAdmin} />
             <main className="main motion-page pb-24">{children}</main>
-            <DataPullFab />
+            {isAdmin && <DataPullFab />}
             <MobileTabNav currentLang={lang} />
           </div>
         </UserModeProvider>
