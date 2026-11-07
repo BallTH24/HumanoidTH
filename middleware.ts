@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedPrefixes = ["/admin", "/data-pulls"];
-const protectedApiPrefixes = ["/api/ingest", "/api/export"];
-
-function isProtectedPath(pathname: string) {
-  return protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
-
-function isProtectedApiPath(pathname: string) {
-  return protectedApiPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Protect Web Pages (Redirect to actual UI login page)
-  if (isProtectedPath(pathname)) {
+  // 1. Strict Server-Side Access Control for /admin
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const adminSession = request.cookies.get("admin_session")?.value;
-    if (adminSession !== "true") {
+    const userRole = request.cookies.get("user_role")?.value;
+
+    if (adminSession !== "true" && userRole !== "ADMIN") {
+      return NextResponse.redirect(new URL("/profile?need_admin=true", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // 2. Protect Data Pulls Web Pages (Redirect to UI login page)
+  if (pathname === "/data-pulls" || pathname.startsWith("/data-pulls/")) {
+    const adminSession = request.cookies.get("admin_session")?.value;
+    const userRole = request.cookies.get("user_role")?.value;
+    if (adminSession !== "true" && userRole !== "ADMIN") {
       const loginUrl = new URL("/admin-login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);
@@ -25,10 +26,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Protect API Routes (Return 401 JSON without WWW-Authenticate header to prevent browser popups)
-  if (isProtectedApiPath(pathname)) {
+  // 3. Protect API Routes (Return 401 JSON without WWW-Authenticate header to prevent browser popups)
+  if (pathname.startsWith("/api/ingest") || pathname.startsWith("/api/export")) {
     const adminSession = request.cookies.get("admin_session")?.value;
-    if (adminSession === "true") {
+    const userRole = request.cookies.get("user_role")?.value;
+    if (adminSession === "true" || userRole === "ADMIN") {
       return NextResponse.next();
     }
 

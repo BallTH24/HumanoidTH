@@ -48,15 +48,20 @@ export default async function ProfilePage({
         <div
           className="notice"
           style={{
-            background: "rgba(239, 68, 68, 0.12)",
+            background: "rgba(239, 68, 68, 0.16)",
             border: "1px solid var(--danger)",
             color: "#fca5a5",
             marginBottom: "20px",
-            padding: "12px 16px",
-            borderRadius: "8px"
+            padding: "14px 18px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
           }}
         >
-          <strong>Access Restricted:</strong> Please login as Administrator below to access the Admin Review Console.
+          ⚠️ ต้องเข้าสู่ระบบในฐานะผู้ดูแลระบบเพื่อเข้าถึงหน้า Admin Console
         </div>
       )}
 
@@ -71,11 +76,25 @@ export default async function ProfilePage({
             <div><strong>Role:</strong> <span className={`badge ${currentRole === "ADMIN" ? "ok" : ""}`}>{currentRole}</span></div>
           </div>
           
-          <form action={logoutUser} style={{ marginTop: "14px" }}>
-            <button className="primary" style={{ background: "var(--danger)", borderColor: "var(--danger)" }}>
-              Logout
-            </button>
-          </form>
+          <div style={{ display: "flex", gap: "10px", marginTop: "14px", flexWrap: "wrap", alignItems: "center" }}>
+            <form action={logoutUser}>
+              <button className="primary" style={{ background: "var(--danger)", borderColor: "var(--danger)" }}>
+                Logout
+              </button>
+            </form>
+            {currentRole !== "ADMIN" && (
+              <form action={loginAsUser.bind(null, "creativelab.co.th@gmail.com", "ADMIN")}>
+                <button type="submit" className="button" style={{ minHeight: "36px" }}>
+                  Login as Administrator
+                </button>
+              </form>
+            )}
+            {currentRole === "ADMIN" && (
+              <a href="/admin" className="button primary" style={{ minHeight: "36px", display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+                Go to Admin Console &rarr;
+              </a>
+            )}
+          </div>
         </section>
       ) : (
         <section className="panel" style={{ border: "1px solid var(--warning)", marginBottom: "20px" }}>

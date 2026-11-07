@@ -199,10 +199,11 @@ export async function loginAsUser(email: string, role: string) {
   });
 
   const cookieStore = await cookies();
-  cookieStore.set("user_email", user.email, { path: "/" });
-  cookieStore.set("user_role", user.role, { path: "/" });
+  const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 86400 };
+  cookieStore.set("user_email", user.email, cookieOptions);
+  cookieStore.set("user_role", user.role, cookieOptions);
   if (user.role === "ADMIN") {
-    cookieStore.set("admin_session", "true", { path: "/" });
+    cookieStore.set("admin_session", "true", cookieOptions);
   } else {
     cookieStore.delete("admin_session");
   }
@@ -235,10 +236,11 @@ export async function registerAndLoginUser(formData: FormData) {
   });
 
   const cookieStore = await cookies();
-  cookieStore.set("user_email", user.email, { path: "/" });
-  cookieStore.set("user_role", user.role, { path: "/" });
+  const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 86400 };
+  cookieStore.set("user_email", user.email, cookieOptions);
+  cookieStore.set("user_role", user.role, cookieOptions);
   if (user.role === "ADMIN") {
-    cookieStore.set("admin_session", "true", { path: "/" });
+    cookieStore.set("admin_session", "true", cookieOptions);
   } else {
     cookieStore.delete("admin_session");
   }
@@ -272,9 +274,10 @@ export async function adminLoginAction(formData: FormData) {
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("user_email", user.email, { path: "/" });
-    cookieStore.set("user_role", "ADMIN", { path: "/" });
-    cookieStore.set("admin_session", "true", { path: "/" });
+    const cookieOptions = { path: "/", sameSite: "lax" as const, maxAge: 86400 };
+    cookieStore.set("user_email", user.email, cookieOptions);
+    cookieStore.set("user_role", "ADMIN", cookieOptions);
+    cookieStore.set("admin_session", "true", cookieOptions);
     
     revalidateAtlasCms();
     redirect("/admin?collection=submitted-data");

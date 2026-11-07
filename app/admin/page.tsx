@@ -17,12 +17,10 @@ export const metadata: Metadata = {
 
 export default async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
   const cookieStore = await cookies();
-  const adminSession = cookieStore.get("admin_session")?.value;
-  const userRole = cookieStore.get("user_role")?.value;
+  const admin_session = cookieStore.get("admin_session");
+  const user_role = cookieStore.get("user_role");
 
-  const isAdmin = adminSession === "true" || userRole === "ADMIN";
-
-  if (!isAdmin) {
+  if (admin_session?.value !== "true" && user_role?.value !== "ADMIN") {
     redirect("/profile?need_admin=true");
   }
 
