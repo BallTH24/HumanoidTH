@@ -1,21 +1,25 @@
 import { PrismaClient } from "../generated/prisma";
-import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error("DATABASE_URL is required for Prisma.");
-}
-
-const adapter = new PrismaPg(connectionString);
+// Safe fallback for static prerendering, testing, or CI environments when DATABASE_URL is not provided
+const defaultFallbackUrl = "postgresql://postgres:postgres@localhost:5432/thailand_humanoid_atlas?schema=public";
+const connectionString = process.env.DATABASE_URL || defaultFallbackUrl;
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    adapter,
-    log: process.env.PRISMA_LOG_LEVEL === "silent" ? [] : process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]
+    datasources: {
+      db: {
+        url: connectionString
+      }
+    },
+    log:
+      process.env.PRISMA_LOG_LEVEL === "silent"
+        ? []
+        : process.env.NODE_ENV === "development"
+        ? ["error", "warn"]
+        : ["error"]
   });
 
 if (process.env.NODE_ENV !== "production") {

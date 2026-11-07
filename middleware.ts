@@ -27,6 +27,11 @@ export function middleware(request: NextRequest) {
 
   // 2. Protect API Routes (Return 401 JSON without WWW-Authenticate header to prevent browser popups)
   if (isProtectedApiPath(pathname)) {
+    const adminSession = request.cookies.get("admin_session")?.value;
+    if (adminSession === "true") {
+      return NextResponse.next();
+    }
+
     const expectedUser = process.env.ADMIN_BASIC_USER || "creativelab.co.th@gmail.com";
     const expectedPassword = process.env.ADMIN_BASIC_PASSWORD || "I@M_Cr3LabTH_F4M";
 

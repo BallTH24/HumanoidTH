@@ -17,4 +17,5 @@ export type IngestResult = {
   recordsFound: number;
   recordsSaved: number;
   missingKeys?: string[];
+  error?: string;
 };

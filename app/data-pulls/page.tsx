@@ -39,7 +39,16 @@ export default async function DataPullsPage() {
                 <td>{job.errorMessage}</td>
               </tr>
             ))}
-            {!jobs.length && <tr><td className="empty" colSpan={6}>No jobs yet.</td></tr>}
+            {!jobs.length && (
+              <tr>
+                <td className="empty" colSpan={6} style={{ padding: "32px 16px", textAlign: "center" }}>
+                  <p style={{ fontWeight: 600, marginBottom: 4 }}>No data pull jobs recorded yet.</p>
+                  <p className="muted" style={{ fontSize: 13, maxWidth: 480, margin: "0 auto" }}>
+                    Trigger an ingestion job using the floating action button or API endpoints to fetch live records from external adapters.
+                  </p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

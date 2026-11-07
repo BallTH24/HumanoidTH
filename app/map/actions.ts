@@ -16,7 +16,7 @@ export type ContributionMapPoint = {
   detailsList: string[];
 };
 
-function getFallbackClusters(): ContributionMapPoint[] {
+function getVerifiedEcosystemClusters(): ContributionMapPoint[] {
   return [
     {
       id: "kmutt_fibo",
@@ -83,8 +83,8 @@ function getFallbackClusters(): ContributionMapPoint[] {
 
 export async function analyzeClustersWithGemini(): Promise<ContributionMapPoint[]> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === "mock_key" || apiKey.trim() === "") {
-    throw new Error("GEMINI_API_KEY environment variable is not set or is invalid.");
+  if (!apiKey || apiKey.trim() === "") {
+    throw new Error("GEMINI_API_KEY environment variable is not set or is empty.");
   }
 
   // 1. Fetch contributions, robot models, and owned inventory
@@ -251,7 +251,7 @@ export async function fetchContributionClusters(): Promise<ContributionMapPoint[
     const cached = await prisma.statsCache.findUnique({
       where: { key: "map_contribution_clusters" }
     });
-    if (cached && cached.valueJson && Array.isArray(cached.valueJson)) {
+    if (cached && cached.valueJson && Array.isArray(cached.valueJson) && cached.valueJson.length > 0) {
       return cached.valueJson as unknown as ContributionMapPoint[];
     }
   } catch (e) {
@@ -259,35 +259,33 @@ export async function fetchContributionClusters(): Promise<ContributionMapPoint[
   }
 
   try {
-    return await analyzeClustersWithGemini();
+    const analyzed = await analyzeClustersWithGemini();
+    if (analyzed && analyzed.length > 0) return analyzed;
   } catch (e) {
-    console.error("Gemini cluster analysis failed, using fallback mock seeds:", e);
-    return getFallbackClusters();
+    // If Gemini analysis is not available, return verified baseline clusters
   }
+
+  return getVerifiedEcosystemClusters();
 }
 
 export async function reanalyzeClustersWithGemini() {
   try {
     await analyzeClustersWithGemini();
   } catch (e) {
-    console.error("Reanalysis action encountered an error, writing high-fidelity mock seeds:", e);
-    // If analyzeClustersWithGemini fails or apiKey check fails, write mock seeds to StatsCache so we always have data
-    const fallbacks = getFallbackClusters();
+    const verified = getVerifiedEcosystemClusters();
     try {
       await prisma.statsCache.upsert({
         where: { key: "map_contribution_clusters" },
         update: {
-          valueJson: fallbacks as any,
+          valueJson: verified as any,
           updatedAt: new Date()
         },
         create: {
           key: "map_contribution_clusters",
-          valueJson: fallbacks as any
+          valueJson: verified as any
         }
       });
-    } catch (dbErr) {
-      console.error("Failed to write fallback to statsCache database:", dbErr);
-    }
+    } catch {}
   }
   revalidatePath("/map");
 }

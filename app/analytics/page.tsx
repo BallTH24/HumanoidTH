@@ -270,6 +270,14 @@ export const metadata: Metadata = {
           Live analytics are unavailable. This page needs PostgreSQL to build the analysis workspace.
         </div>
       )}
+      {summary.sourceCount === 0 && summary.robotCount === 0 && !dbOffline && (
+        <div className="panel" style={{ padding: "24px", textAlign: "center", margin: "16px 0" }}>
+          <p style={{ fontWeight: 600, marginBottom: 4 }}>No analytics records found in database.</p>
+          <p className="muted" style={{ fontSize: 13, maxWidth: 500, margin: "0 auto" }}>
+            Run the database seeder (<code>pnpm db:seed</code>) or execute an ingestion pull to populate research records.
+          </p>
+        </div>
+      )}
       <div className="grid" style={{ margin: "18px 0" }}>
         <div className="panel motion-panel motion-pop">
           <div className="muted">Internet Sources</div>

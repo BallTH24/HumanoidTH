@@ -43,6 +43,12 @@ enum UserRole {
   ADMIN
 }
 
+enum CaseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum PullStatus {
   QUEUED
   RUNNING
@@ -102,6 +108,7 @@ model RobotModel {
   lastVerifiedAt    DateTime?
   contributions     Contribution[]
   inventory         OwnedInventory[]
+  wellnessCases     WellnessCase[]
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
@@ -139,6 +146,7 @@ model Contribution {
 
   @@index([contributionType])
   @@index([verificationStatus])
+  @@index([relatedRobotModelId])
 }
 
 model PerspectiveAnnotation {
@@ -156,6 +164,7 @@ model PerspectiveAnnotation {
 
   @@unique([sourceId, perspectiveTheme, targetEntity, evidenceExcerpt])
   @@index([perspectiveTheme])
+  @@index([sourceId])
 }
 
 model Triplet {
@@ -170,11 +179,13 @@ model Triplet {
 
   @@unique([subject, relation, object, sourceId])
   @@index([relation])
+  @@index([sourceId])
 }
 
 model StatsCache {
   key       String   @id
   valueJson Json
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
@@ -196,6 +207,7 @@ model SubmittedData {
 
   @@index([status])
   @@index([submissionType])
+  @@index([submittedById])
 }
 
 model PipelineRun {
@@ -250,3 +262,26 @@ model OwnedInventory {
 
   @@index([robotModelId])
 }
+
+model WellnessCase {
+  id              String      @id @default(cuid())
+  title           String
+  robotId         String
+  robot           RobotModel  @relation(fields: [robotId], references: [id], onDelete: Cascade)
+  scenarioContext String
+  activityDesc    String      @db.Text
+  stressScore     Int
+  comfortScore    Int
+  trustScore      Int
+  usefulnessScore Int
+  caveats         String?     @db.Text
+  evidenceUrl     String
+  submittedBy     String?
+  status          CaseStatus  @default(PENDING)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+  @@index([robotId])
+}
+

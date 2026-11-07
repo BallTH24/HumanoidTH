@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Prisma, PrismaClient } from "../generated/prisma";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { canonicalizeUrl } from "./url";
 
 export type SeedRecord = {
@@ -56,13 +55,15 @@ function normalizeSourceType(platform: string | null) {
 }
 
 export function createSeedClient() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL is required for seeding.");
-  }
+  const defaultFallbackUrl = "postgresql://postgres:postgres@localhost:5432/thailand_humanoid_atlas?schema=public";
+  const connectionString = process.env.DATABASE_URL || defaultFallbackUrl;
 
   return new PrismaClient({
-    adapter: new PrismaPg(connectionString)
+    datasources: {
+      db: {
+        url: connectionString
+      }
+    }
   });
 }
 
@@ -386,39 +387,73 @@ export async function seedAtlasData(prisma: PrismaClient, datasetPath = resolve(
     }
 
     if (record.category === "source_pull_job") {
-      await prisma.sourcePullJob.create({
-        data: {
-          adapter: "SEED",
-          query: record.title,
-          status: "SUCCEEDED",
-          recordsFound: 0,
-          recordsSaved: 0,
-          errorMessage: null,
-          startedAt: record.published_at ? parsePublishedAt(record.published_at) : new Date(),
-          finishedAt: new Date()
-        }
+      const existingJob = await prisma.sourcePullJob.findFirst({
+        where: { adapter: "SEED", query: record.title }
       });
+      if (existingJob) {
+        await prisma.sourcePullJob.update({
+          where: { id: existingJob.id },
+          data: {
+            status: "SUCCEEDED",
+            finishedAt: new Date()
+          }
+        });
+      } else {
+        await prisma.sourcePullJob.create({
+          data: {
+            adapter: "SEED",
+            query: record.title,
+            status: "SUCCEEDED",
+            recordsFound: 0,
+            recordsSaved: 0,
+            errorMessage: null,
+            startedAt: record.published_at ? parsePublishedAt(record.published_at) : new Date(),
+            finishedAt: new Date()
+          }
+        });
+      }
       continue;
     }
 
     if (record.category === "submission_record") {
       const url = canonicalizeUrl(record.url);
-      await prisma.submittedData.create({
-        data: {
-          submissionType: record.contribution_type ?? "source_url",
+      const existingSub = await prisma.submittedData.findFirst({
+        where: {
           title: record.title,
-          url,
-          notes: record.notes ?? record.description ?? null,
-          submitterName: record.author,
-          submitterContact: null,
-          status: "APPROVED",
-          payloadJson: {
-            category: record.category,
-            canonicalName: record.canonical_name,
-            confidence: record.confidence
-          } as Prisma.InputJsonValue
+          ...(url ? { url } : {})
         }
       });
+      if (existingSub) {
+        await prisma.submittedData.update({
+          where: { id: existingSub.id },
+          data: {
+            submissionType: record.contribution_type ?? "source_url",
+            title: record.title,
+            url,
+            notes: record.notes ?? record.description ?? null,
+            submitterName: record.author,
+            status: "APPROVED"
+          }
+        });
+      } else {
+        await prisma.submittedData.create({
+          data: {
+            submissionType: record.contribution_type ?? "source_url",
+            title: record.title,
+            url,
+            notes: record.notes ?? record.description ?? null,
+            submitterName: record.author,
+            submitterContact: null,
+            status: "APPROVED",
+            payloadJson: {
+              category: record.category,
+              canonicalName: record.canonical_name,
+              confidence: record.confidence
+            } as Prisma.InputJsonValue
+          }
+        });
+      }
+      continue;
     }
   }
 }
