@@ -112,83 +112,71 @@ export default function Sidebar({
   return (
     <aside
       suppressHydrationWarning
-      className={`sidebar transition-all duration-300 ease-in-out ${
+      className={`sidebar relative transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20 collapsed is-collapsed" : "w-64"
       } ${className}`.trim()}
       aria-label="Primary Navigation"
       data-collapsed={isCollapsed}
     >
-      {/* Header: Brand Logo & Collapse Toggle Button */}
+      {/* Floating Collapse Toggle on Sidebar's Right Border */}
+      <button
+        type="button"
+        suppressHydrationWarning
+        onClick={toggleCollapse}
+        className={`sidebar-toggle-btn ${isCollapsed ? "collapsed" : ""}`}
+        aria-label={isCollapsed ? "Expand sidebar (Ctrl+B)" : "Collapse sidebar (Ctrl+B)"}
+        title={isCollapsed ? "Expand sidebar (Ctrl+B)" : "Collapse sidebar (Ctrl+B)"}
+      >
+        {isCollapsed ? (
+          <PanelLeftOpen
+            size={14}
+            className="sidebar-toggle-icon"
+            aria-hidden="true"
+          />
+        ) : (
+          <PanelLeftClose
+            size={14}
+            className="sidebar-toggle-icon"
+            aria-hidden="true"
+          />
+        )}
+      </button>
+
+      {/* Header: Brand Logo */}
       <div className={`sidebar-header ${isCollapsed ? "collapsed" : ""}`}>
         <div className={`brand-logo-container ${isCollapsed ? "collapsed" : ""}`}>
           {isCollapsed ? (
             <Link
               href="/"
-              className="brand-emblem-link group"
+              className="brand-emblem-link"
               title="Thailand Humanoid Atlas"
               aria-label="Thailand Humanoid Atlas"
             >
-              <div className="brand-emblem-wrap w-12 h-12 rounded-full overflow-hidden shrink-0 border border-emerald-500/35 bg-emerald-950/80 shadow-md flex items-center justify-center p-0.5 group-hover:border-emerald-400 group-hover:scale-105 transition-all">
+              <div className="brand-emblem-wrap">
                 <img
                   src="/logo-emblem.png"
                   alt="Thailand Humanoid Atlas Emblem"
-                  className="brand-emblem w-full h-full object-cover rounded-full"
-                  width={48}
-                  height={48}
+                  className="brand-emblem"
+                  width={44}
+                  height={44}
                 />
               </div>
             </Link>
           ) : (
             <Link
               href="/"
-              className="brand-full-link flex items-center gap-3 min-w-0 group"
+              className="brand-logo-link"
               title="Thailand Humanoid Atlas"
               aria-label="Thailand Humanoid Atlas"
             >
-              <div className="brand-emblem-wrap w-12 h-12 rounded-full overflow-hidden shrink-0 border border-emerald-500/35 bg-emerald-950/80 shadow-md flex items-center justify-center p-0.5 group-hover:border-emerald-400 group-hover:scale-105 transition-all">
-                <img
-                  src="/logo-emblem.png"
-                  alt="Thailand Humanoid Atlas Emblem"
-                  className="brand-emblem brand-logo w-full h-full object-cover rounded-full"
-                  width={48}
-                  height={48}
-                />
-              </div>
-              <div className="flex flex-col min-w-0 leading-tight">
-                <span className="text-[13px] font-extrabold tracking-wider text-emerald-100 uppercase truncate group-hover:text-white transition-colors">
-                  THAILAND
-                </span>
-                <span className="text-[11px] font-bold tracking-widest text-emerald-400 uppercase truncate">
-                  HUMANOID ATLAS
-                </span>
-              </div>
+              <img
+                src="/logo.png"
+                alt="Thailand Humanoid Atlas"
+                className="brand-logo"
+              />
             </Link>
           )}
         </div>
-
-        {/* Toggle Button */}
-        <button
-          type="button"
-          suppressHydrationWarning
-          onClick={toggleCollapse}
-          className={`sidebar-toggle-btn group ${isCollapsed ? "collapsed" : ""}`}
-          aria-label={isCollapsed ? "Expand sidebar (Ctrl+B)" : "Collapse sidebar (Ctrl+B)"}
-          title={isCollapsed ? "Expand sidebar (Ctrl+B)" : "Collapse sidebar (Ctrl+B)"}
-        >
-          {isCollapsed ? (
-            <PanelLeftOpen
-              size={20}
-              className="w-5 h-5 text-emerald-200 group-hover:text-white transition-colors shrink-0"
-              aria-hidden="true"
-            />
-          ) : (
-            <PanelLeftClose
-              size={20}
-              className="w-5 h-5 text-emerald-200 group-hover:text-white transition-colors shrink-0"
-              aria-hidden="true"
-            />
-          )}
-        </button>
       </div>
 
       {/* Nav Menu */}

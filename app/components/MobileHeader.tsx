@@ -5,9 +5,8 @@ import ModeToggle from "./ModeToggle";
 export default function MobileHeader() {
   return (
     <header className="mobile-header">
-      <Link href="/" className="mobile-brand">
-        <img src="/logo.png" alt="Thailand Humanoid Atlas Logo" className="mobile-logo-img" />
-        <span className="mobile-title">THAILAND HUMANOID ATLAS</span>
+      <Link href="/" className="mobile-brand" title="Thailand Humanoid Atlas">
+        <img src="/logo.png" alt="Thailand Humanoid Atlas" className="mobile-logo-img" />
       </Link>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "auto" }}>
         <ModeToggle compact />
