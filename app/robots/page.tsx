@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { getTranslation } from "@/lib/translations";
+import RobotsListClient from "./RobotsListClient";
 
 export const dynamic = "force-dynamic";
 
@@ -160,6 +161,19 @@ export default async function RobotsPage() {
     sources = [];
   }
 
+  const processedRobots = robots.map((robot) => ({
+    id: robot.id,
+    canonicalName: robot.canonicalName,
+    description: robot.description,
+    robotType: robot.robotType,
+    thailandStatus: robot.thailandStatus,
+    manufacturer: robot.manufacturer,
+    developerOrg: robot.developerOrg,
+    primaryUseCase: robot.primaryUseCase,
+    officialUrl: robot.officialUrl,
+    bannerUrl: getRobotSourceImage(robot, sources)
+  }));
+
   return (
     <>
       <h1>{t.robotsTitle}</h1>
@@ -169,28 +183,7 @@ export default async function RobotsPage() {
           Live database records are unavailable. No substitute robot registry records are being shown.
         </div>
       )}
-      <div className="cards">
-        {robots.map((robot) => {
-          const bannerUrl = getRobotSourceImage(robot, sources);
-          return (
-            <article className="card" key={robot.id}>
-              <div className="card-banner">
-                {bannerUrl ? (
-                  <img src={bannerUrl} alt={robot.canonicalName} loading="lazy" />
-                ) : (
-                  <div className="source-thumbnail-empty">No source thumbnail</div>
-                )}
-              </div>
-              <h2>{robot.canonicalName}</h2>
-              <p className="muted">{robot.description ?? "No description yet."}</p>
-              <p><span className="badge">{robot.robotType}</span> <span className="badge">{robot.thailandStatus}</span></p>
-              <p><strong>{robot.manufacturer ?? robot.developerOrg ?? "Unknown developer"}</strong><br />{robot.primaryUseCase ?? "Use case unclassified"}</p>
-              {robot.officialUrl && <a href={robot.officialUrl} target="_blank" rel="noopener noreferrer">Source</a>}
-            </article>
-          );
-        })}
-        {!robots.length && <div className="empty">No robot models yet. Add seeds with `pnpm db:seed` or import sources.</div>}
-      </div>
+      <RobotsListClient robots={processedRobots} currentLang={lang} />
     </>
   );
 }

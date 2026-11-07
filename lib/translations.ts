@@ -16,6 +16,13 @@ export const translations = {
     admin: "Admin",
     cms: "CMS",
     profile: "Profile",
+    wellness: "Wellness & HRI",
+    generalMode: "General Mode (Caregiver)",
+    expertMode: "Expert Mode (Researcher)",
+    elderlyCare: "Elderly Care",
+    physicalRehab: "Physical Rehabilitation",
+    hospitalConcierge: "Hospital Concierge",
+    socialEducation: "Social/Education",
     
     // Overview page
     overviewTitle: "Overview & Corpus Summary",
@@ -72,6 +79,8 @@ export const translations = {
     cmsDesc: "Edit source records, robot models, and community content in one place.",
     profileTitle: "User Profile & Simulation",
     profileDesc: "Manage your current session user email and role for simulation purposes.",
+    wellnessTitle: "Wellness & HRI Research Explorer",
+    wellnessDesc: "Operational scenarios, clinical evaluation, and Human-Robot Interaction (HRI) metrics across Thailand.",
     
     // Copy Local Graph Paths
     copyLocalGraphPaths: "Copy Local Graph Paths",
@@ -104,6 +113,13 @@ export const translations = {
     admin: "ผู้ดูแลระบบ",
     cms: "CMS",
     profile: "โปรไฟล์ระบบ",
+    wellness: "สุขภาวะ & HRI",
+    generalMode: "โหมดทั่วไป (ผู้ดูแล)",
+    expertMode: "โหมดผู้เชี่ยวชาญ (นักวิจัย)",
+    elderlyCare: "การดูแลผู้สูงอายุ",
+    physicalRehab: "เวชศาสตร์ฟื้นฟู",
+    hospitalConcierge: "ห้องรอตรวจ/บริการ",
+    socialEducation: "การศึกษาและการมีส่วนร่วม",
 
     // Overview page
     overviewTitle: "ภาพรวมและสรุปคลังข้อมูล",
@@ -160,6 +176,8 @@ export const translations = {
     cmsDesc: "แก้ไขข้อมูลต้นทาง โมเดลหุ่นยนต์ และข้อมูลจากชุมชนได้ในที่เดียว",
     profileTitle: "โปรไฟล์และจำลองสิทธิ์ผู้ใช้งาน",
     profileDesc: "กำหนดอีเมลและสิทธิ์ผู้ใช้งานปัจจุบันเพื่อจุดประสงค์ในการจำลองและทดสอบระบบ",
+    wellnessTitle: "สำรวจงานวิจัยสุขภาวะและปฏิสัมพันธ์หุ่นยนต์ (HRI)",
+    wellnessDesc: "สถานการณ์การใช้งานจริง การประเมินทางคลินิก และดัชนีชี้วัดปฏิสัมพันธ์ระหว่างมนุษย์กับหุ่นยนต์ (HRI) ในประเทศไทย",
     
     // Copy Local Graph Paths
     copyLocalGraphPaths: "คัดลอกเส้นทางกราฟเฉพาะที่ (Copy Local Graph Paths)",

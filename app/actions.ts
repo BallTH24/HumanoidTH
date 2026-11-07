@@ -7,6 +7,7 @@ import type { SourceType } from "../generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { runAdapter } from "@/lib/ingest/adapters";
 import { canonicalizeUrl } from "@/lib/url";
+import { submissionSchema } from "@/lib/validations/submission";
 
 function readTextField(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -69,12 +70,29 @@ export async function createSubmission(formData: FormData) {
     redirect("/profile?from=/submit-data");
   }
 
+  const raw = {
+    submissionType: String(formData.get("submissionType") ?? "source_url"),
+    title: String(formData.get("title") ?? ""),
+    url: String(formData.get("url") ?? "").trim(),
+    notes: String(formData.get("notes") ?? "").trim(),
+    submitterName: user.name || null,
+    submitterContact: user.email
+  };
+
+  const validation = submissionSchema.safeParse(raw);
+  if (!validation.success) {
+    const errorMsg = validation.error.issues.map((i) => i.message).join(", ");
+    throw new Error(`Submission validation failed: ${errorMsg}`);
+  }
+
+  const { submissionType, title, url, notes } = validation.data;
+
   await prisma.submittedData.create({
     data: {
-      submissionType: String(formData.get("submissionType") ?? "source_url"),
-      title: String(formData.get("title") ?? ""),
-      url: canonicalizeUrl(String(formData.get("url") ?? "")) || null,
-      notes: String(formData.get("notes") ?? "") || null,
+      submissionType,
+      title,
+      url: url ? canonicalizeUrl(url) || null : null,
+      notes: notes || null,
       submitterName: user.name || null,
       submitterContact: user.email,
       submittedById: user.id,
@@ -92,7 +110,33 @@ export async function updateSubmissionStatus(id: string, status: "APPROVED" | "R
   revalidateAtlasCms();
 }
 
+export async function approveWellnessCaseAction(caseId: string) {
+  const cookieStore = await cookies();
+  const userRole = cookieStore.get("user_role")?.value;
+  const adminSession = cookieStore.get("admin_session")?.value;
+
+  const isAdmin = userRole === "ADMIN" || adminSession === "true";
+  if (!isAdmin) {
+    throw new Error("Unauthorized. Admin role required to approve cases.");
+  }
+
+  await prisma.wellnessCase.update({
+    where: { id: caseId },
+    data: { status: "APPROVED" }
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/wellness");
+  revalidateAtlasCms();
+}
+
 export async function runDataPull(formData: FormData) {
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get("admin_session")?.value === "true";
+  if (!isAdmin) {
+    throw new Error("Unauthorized. Admin credentials required to trigger data pulls.");
+  }
+
   const adapter = String(formData.get("adapter") ?? "OPENALEX") as SourceType;
   const query = String(formData.get("query") ?? "").trim();
   const limit = Number(formData.get("limit") ?? 10);
@@ -107,16 +151,27 @@ export async function runDataPull(formData: FormData) {
 
   try {
     const result = await runAdapter(adapter, { query, limit });
-    await prisma.sourcePullJob.update({
-      where: { id: job.id },
-      data: {
-        status: result.missingKeys?.length ? "SKIPPED_MISSING_KEY" : "SUCCEEDED",
-        recordsFound: result.recordsFound,
-        recordsSaved: result.recordsSaved,
-        errorMessage: result.missingKeys?.join(", ") || null,
-        finishedAt: new Date()
-      }
-    });
+    if (result.error) {
+      await prisma.sourcePullJob.update({
+        where: { id: job.id },
+        data: {
+          status: "FAILED",
+          errorMessage: result.error,
+          finishedAt: new Date()
+        }
+      });
+    } else {
+      await prisma.sourcePullJob.update({
+        where: { id: job.id },
+        data: {
+          status: result.missingKeys && result.missingKeys.length ? "SKIPPED_MISSING_KEY" : "SUCCEEDED",
+          recordsFound: result.recordsFound,
+          recordsSaved: result.recordsSaved,
+          errorMessage: result.missingKeys && result.missingKeys.length ? `Missing keys: ${result.missingKeys.join(", ")}` : null,
+          finishedAt: new Date()
+        }
+      });
+    }
   } catch (error) {
     await prisma.sourcePullJob.update({
       where: { id: job.id },

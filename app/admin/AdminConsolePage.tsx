@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getTranslation } from "@/lib/translations";
 import {
+  approveWellnessCaseAction,
   updateSubmissionStatus,
   upsertContributionAction,
   upsertRobotModelAction,
@@ -110,8 +112,15 @@ export default async function AdminConsolePage({ searchParams }: { searchParams:
   let errorMessage: string | null = null;
   let records: any[] = [];
   let robotOptions: Array<{ id: string; canonicalName: string }> = [];
+  let pendingCases: any[] = [];
 
   try {
+    pendingCases = await prisma.wellnessCase.findMany({
+      where: { status: "PENDING" },
+      include: { robot: true },
+      orderBy: { createdAt: "desc" }
+    });
+
     if (collection === "source-records") {
       records = await prisma.sourceRecord.findMany({
         orderBy: { updatedAt: "desc" },
@@ -172,6 +181,102 @@ export default async function AdminConsolePage({ searchParams }: { searchParams:
           <div className="muted" style={{ marginTop: "6px", fontSize: "12px" }}>{errorMessage}</div>
         </div>
       )}
+
+      {/* คิวตรวจสอบกรณีศึกษา (Pending HRI Cases) */}
+      <section className="panel" style={{ marginBottom: "18px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700 }}>
+              {lang === "th" ? "คิวตรวจสอบกรณีศึกษา (Pending HRI Cases)" : "Pending HRI Cases Review Queue"}
+            </h2>
+            <p className="muted" style={{ margin: "2px 0 0 0", fontSize: "12px" }}>
+              {lang === "th"
+                ? "กรณีศึกษาปฏิสัมพันธ์หุ่นยนต์สุขภาวะที่รอการตรวจสอบและอนุมัติเข้าสู่ระบบ"
+                : "Submitted HRI wellness case studies awaiting admin approval"}
+            </p>
+          </div>
+          <span className={`badge ${pendingCases.length > 0 ? "warn" : "ok"}`}>
+            {pendingCases.length} {lang === "th" ? "รายการรออนุมัติ" : "pending"}
+          </span>
+        </div>
+
+        {pendingCases.length === 0 ? (
+          <div className="empty" style={{ padding: "14px", textAlign: "center", fontSize: "13px" }}>
+            {lang === "th" ? "ไม่มีกรณีศึกษาที่รอการอนุมัติในขณะนี้" : "No pending HRI cases awaiting approval."}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {pendingCases.map((c: any) => (
+              <div
+                key={c.id}
+                style={{
+                  background: "var(--surface-muted)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "12px 14px",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "12px"
+                }}
+              >
+                <div style={{ flex: 1, minWidth: "260px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                    <span className="badge" style={{ fontSize: "10px" }}>{c.scenarioContext}</span>
+                    <span className="muted" style={{ fontSize: "11px" }}>
+                      Robot: <strong>{c.robot?.canonicalName}</strong>
+                    </span>
+                    {c.submittedBy && (
+                      <span className="muted" style={{ fontSize: "11px" }}>
+                        • โดย {c.submittedBy}
+                      </span>
+                    )}
+                  </div>
+                  <strong style={{ fontSize: "14px", display: "block", color: "var(--text-primary)" }}>
+                    {c.title}
+                  </strong>
+                  <p className="muted" style={{ margin: "4px 0 0 0", fontSize: "12px", lineHeight: 1.4 }}>
+                    {c.activityDesc.length > 130 ? c.activityDesc.slice(0, 130) + "..." : c.activityDesc}
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Link
+                    href={`/wellness/${encodeURIComponent(c.id)}`}
+                    target="_blank"
+                    className="button"
+                    style={{ fontSize: "12px" }}
+                  >
+                    {lang === "th" ? "ดูรายละเอียด" : "Inspect"}
+                  </Link>
+                  <form
+                    action={async () => {
+                      "use server";
+                      await approveWellnessCaseAction(c.id);
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      className="button primary"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontSize: "12px",
+                        background: "var(--accent)"
+                      }}
+                    >
+                      <CheckCircle2 size={13} />
+                      <span>{lang === "th" ? "อนุมัติ (Approve)" : "Approve"}</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="toolbar" style={{ marginTop: 0 }}>
         {collectionTabs.map((tab) => (
